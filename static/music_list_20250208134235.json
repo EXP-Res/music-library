@@ -878,6 +878,19 @@
                 "lyric_id": "264843800ed62eeb901e7dbea351542a"
             },
             {
+                "id": "8d921195f84f0ef10b51487b62ed7032",
+                "name": "黄永明 - 天空之城 - 尤克里里指弹",
+                "artist": "黄永明",
+                "album": "尤克里里",
+                "url": "static/民谣/黄永明 - 天空之城 - 尤克里里指弹.mp3",
+                "pic": "",
+                "lyric": "",
+                "source": "local",
+                "url_id": "8d921195f84f0ef10b51487b62ed7032",
+                "pic_id": "",
+                "lyric_id": ""
+            },
+            {
                 "id": "e19dc9e9af467f254dd7483ff7b9f57d",
                 "name": "草帽 - 美好事物",
                 "artist": "草帽",
@@ -1435,6 +1448,19 @@
                 "url_id": "8e5feac6e83a87d10fc4cba3577d6404",
                 "pic_id": "",
                 "lyric_id": ""
+            },
+            {
+                "id": "840f79142001abddf1b82dde153c5074",
+                "name": "开心蛙蛙 - 囍",
+                "artist": "开心蛙蛙",
+                "album": "",
+                "url": "static/古风/开心蛙蛙 - 囍.mp3",
+                "pic": "static/古风/开心蛙蛙 - 囍.jpg",
+                "lyric": "static/古风/开心蛙蛙 - 囍.lrc",
+                "source": "local",
+                "url_id": "840f79142001abddf1b82dde153c5074",
+                "pic_id": "840f79142001abddf1b82dde153c5074",
+                "lyric_id": "840f79142001abddf1b82dde153c5074"
             },
             {
                 "id": "21845074880215e9a6442d0c510479a6",
