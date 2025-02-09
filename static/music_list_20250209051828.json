@@ -1411,6 +1411,19 @@
                 "lyric_id": ""
             },
             {
+                "id": "0a8c9cc69ef2f0dff803d532737c5935",
+                "name": "416小淅鹅 - 探窗 - 流行;程派;京剧",
+                "artist": "416女团-小淅鹅",
+                "album": "流行;程派;京剧",
+                "url": "static/古风/416小淅鹅 - 探窗 - 流行;程派;京剧.mp3",
+                "pic": "",
+                "lyric": "",
+                "source": "local",
+                "url_id": "0a8c9cc69ef2f0dff803d532737c5935",
+                "pic_id": "",
+                "lyric_id": ""
+            },
+            {
                 "id": "24cb7102590640e625f032df635fbf6e",
                 "name": "谢子新 - 玉衡星",
                 "artist": "谢子新",
@@ -1435,6 +1448,19 @@
                 "url_id": "1a6a29c1194c9bf54c7a8883b27a78e2",
                 "pic_id": "1a6a29c1194c9bf54c7a8883b27a78e2",
                 "lyric_id": "1a6a29c1194c9bf54c7a8883b27a78e2"
+            },
+            {
+                "id": "4e3a8db379995e026146b8377b22a3e8",
+                "name": "416合唱 - 探窗 - 戏腔",
+                "artist": "416女团",
+                "album": "戏腔",
+                "url": "static/古风/416合唱 - 探窗 - 戏腔.mp3",
+                "pic": "",
+                "lyric": "static/古风/416合唱 - 探窗 - 戏腔.lrc",
+                "source": "local",
+                "url_id": "4e3a8db379995e026146b8377b22a3e8",
+                "pic_id": "",
+                "lyric_id": "4e3a8db379995e026146b8377b22a3e8"
             },
             {
                 "id": "8e5feac6e83a87d10fc4cba3577d6404",
