@@ -319,6 +319,19 @@
                 "lyric_id": "deeb8a4c781516d96903bd4749362b94"
             },
             {
+                "id": "98486ce9f275c039a363bd7507220162",
+                "name": "任然 - 春山空",
+                "artist": "任然",
+                "album": "古风",
+                "url": "static/古风/任然 - 春山空.mp3",
+                "pic": "static/古风/任然 - 春山空.jpg",
+                "lyric": "static/古风/任然 - 春山空.lrc",
+                "source": "local",
+                "url_id": "98486ce9f275c039a363bd7507220162",
+                "pic_id": "98486ce9f275c039a363bd7507220162",
+                "lyric_id": "98486ce9f275c039a363bd7507220162"
+            },
+            {
                 "id": "21845074880215e9a6442d0c510479a6",
                 "name": "玄觞 - 芊芊",
                 "artist": "玄觞",
