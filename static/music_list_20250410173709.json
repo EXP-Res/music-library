@@ -2139,6 +2139,19 @@
                 "lyric_id": "dd7cec631008357b423435890b480c3e"
             },
             {
+                "id": "c6a46e7f7ae3de30a43b92ca39d6e5d9",
+                "name": "周深 - 小美满",
+                "artist": "周深",
+                "album": "热辣滚烫",
+                "url": "static/流行/周深 - 小美满.mp3",
+                "pic": "static/流行/周深 - 小美满.jpg",
+                "lyric": "static/流行/周深 - 小美满.lrc",
+                "source": "local",
+                "url_id": "c6a46e7f7ae3de30a43b92ca39d6e5d9",
+                "pic_id": "c6a46e7f7ae3de30a43b92ca39d6e5d9",
+                "lyric_id": "c6a46e7f7ae3de30a43b92ca39d6e5d9"
+            },
+            {
                 "id": "b49b13aec8d8d0fb13a1d025d1e2c2e5",
                 "name": "飞轮海 - 对手",
                 "artist": "终极三国",
