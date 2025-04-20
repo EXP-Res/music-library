@@ -1580,6 +1580,19 @@
                 "lyric_id": ""
             },
             {
+                "id": "10bc2edf2a92753ba5e562d7fa41a4a6",
+                "name": "侠客行不通 - 布瑞吉Bridge、徐志胜 - 无名小道",
+                "artist": "布瑞吉Bridge、徐志胜",
+                "album": "侠客行不通",
+                "url": "static/影视/侠客行不通 - 布瑞吉Bridge、徐志胜 - 无名小道.mp3",
+                "pic": "static/影视/侠客行不通 - 布瑞吉Bridge、徐志胜 - 无名小道.jpg",
+                "lyric": "static/影视/侠客行不通 - 布瑞吉Bridge、徐志胜 - 无名小道.lrc",
+                "source": "local",
+                "url_id": "10bc2edf2a92753ba5e562d7fa41a4a6",
+                "pic_id": "10bc2edf2a92753ba5e562d7fa41a4a6",
+                "lyric_id": "10bc2edf2a92753ba5e562d7fa41a4a6"
+            },
+            {
                 "id": "25d92e6d390bb2a0f31d3f9225434a11",
                 "name": "想死君 - unravel - 東京喰種",
                 "artist": "想死君>",
