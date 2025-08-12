@@ -1593,6 +1593,45 @@
                 "lyric_id": "b1c9b9a97f10735f1292f49aebf5065f"
             },
             {
+                "id": "d2293bded7b51b7e556296897ade0e9e",
+                "name": "凡人修仙传 - 不问 - 韩立墨彩环版",
+                "artist": "凡人修仙传",
+                "album": "韩立墨彩环版",
+                "url": "static/动漫/凡人修仙传/凡人修仙传 - 不问 - 韩立墨彩环版.mp3",
+                "pic": "static/动漫/凡人修仙传/凡人修仙传 - 不问 - 韩立墨彩环版.jpg",
+                "lyric": "static/动漫/凡人修仙传/凡人修仙传 - 不问 - 韩立墨彩环版.lrc",
+                "source": "local",
+                "url_id": "d2293bded7b51b7e556296897ade0e9e",
+                "pic_id": "d2293bded7b51b7e556296897ade0e9e",
+                "lyric_id": "d2293bded7b51b7e556296897ade0e9e"
+            },
+            {
+                "id": "4d0f04cb57eecb7d27ea0d2a054c873a",
+                "name": "王錚亮 - 不凡",
+                "artist": "王錚亮",
+                "album": "",
+                "url": "static/动漫/凡人修仙传/王錚亮 - 不凡.mp3",
+                "pic": "static/动漫/凡人修仙传/王錚亮 - 不凡.jpg",
+                "lyric": "static/动漫/凡人修仙传/王錚亮 - 不凡.lrc",
+                "source": "local",
+                "url_id": "4d0f04cb57eecb7d27ea0d2a054c873a",
+                "pic_id": "4d0f04cb57eecb7d27ea0d2a054c873a",
+                "lyric_id": "4d0f04cb57eecb7d27ea0d2a054c873a"
+            },
+            {
+                "id": "e41520a56c16cc8c2480f39073400a2d",
+                "name": "段奧娟 - 凡人",
+                "artist": "段奧娟",
+                "album": "",
+                "url": "static/动漫/凡人修仙传/段奧娟 - 凡人.mp3",
+                "pic": "static/动漫/凡人修仙传/段奧娟 - 凡人.jpg",
+                "lyric": "static/动漫/凡人修仙传/段奧娟 - 凡人.lrc",
+                "source": "local",
+                "url_id": "e41520a56c16cc8c2480f39073400a2d",
+                "pic_id": "e41520a56c16cc8c2480f39073400a2d",
+                "lyric_id": "e41520a56c16cc8c2480f39073400a2d"
+            },
+            {
                 "id": "385ed0600ffbf181c9c4a8c28f76aa63",
                 "name": "流浪的蛙蛙 - 从别后",
                 "artist": "流浪的蛙蛙",
