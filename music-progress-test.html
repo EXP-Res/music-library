@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>音乐进度条专项测试</title>
+    <link rel="stylesheet" type="text/css" href="css/player.css">
+    <script src="js/jquery.min.js"></script>
+    <style>
+        body { margin: 40px; font-family: Arial, sans-serif; }
+        .test-section { 
+            border: 1px solid #ddd; 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: #f9f9f9; 
+        }
+        .progress-container {
+            margin: 20px 0;
+            width: 500px;
+            height: 50px;
+            position: relative;
+            background: #eee;
+            border: 1px solid #ccc;
+        }
+        .status-info {
+            margin: 10px 0;
+            padding: 10px;
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            font-family: monospace;
+        }
+        button { 
+            margin: 5px; 
+            padding: 8px 15px; 
+            background: #007cba; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+        }
+        button:hover { background: #005a87; }
+        .disabled { background: #ccc !important; cursor: not-allowed !important; }
+        #log { 
+            background: #f5f5f5; 
+            padding: 10px; 
+            font-family: monospace; 
+            white-space: pre-wrap; 
+            max-height: 300px; 
+            overflow-y: auto; 
+            border: 1px solid #ccc;
+        }
+        audio { width: 100%; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>音乐进度条专项测试</h1>
+    
+    <div class="test-section">
+        <h3>音频状态</h3>
+        <audio id="test-audio" controls>
+            <source src="static/其他/M2M - pretty boy.mp3" type="audio/mpeg">
+            您的浏览器不支持音频元素。
+        </audio>
+        <div class="status-info">
+            <div>音频状态: <span id="audio-status">未加载</span></div>
+            <div>持续时间: <span id="audio-duration">未知</span></div>
+            <div>当前时间: <span id="audio-current">0</span></div>
+            <div>进度条状态: <span id="progressbar-status">锁定</span></div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h3>音乐进度条测试</h3>
+        <div>进度: <span id="music-percent">0%</span></div>
+        <div class="progress-container">
+            <div id="music-progress" class="mkpgb-area"></div>
+        </div>
+        <button onclick="initProgressBar()">初始化进度条</button>
+        <button onclick="lockProgressBar()">锁定进度条</button>
+        <button onclick="unlockProgressBar()">解锁进度条</button>
+        <button onclick="setProgress(0.3)">设置到30%</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>测试控制</h3>
+        <button onclick="loadAudio()">加载音频</button>
+        <button onclick="playAudio()">播放音频</button>
+        <button onclick="pauseAudio()">暂停音频</button>
+        <button onclick="checkAudioState()">检查音频状态</button>
+    </div>
+    
+    <div class="test-section">
+        <h3>调试日志</h3>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        var audio, music_bar;
+        
+        function log(message) {
+            var logDiv = document.getElementById('log');
+            logDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function updateStatus() {
+            if (audio) {
+                document.getElementById('audio-status').textContent = audio.paused ? '暂停' : '播放';
+                document.getElementById('audio-duration').textContent = isNaN(audio.duration) ? '未知' : audio.duration.toFixed(2) + 's';
+                document.getElementById('audio-current').textContent = audio.currentTime.toFixed(2) + 's';
+            }
+            
+            if (music_bar) {
+                document.getElementById('progressbar-status').textContent = music_bar.locked ? '锁定' : '解锁';
+            }
+        }
+
+        // 进度条插件（简化版，包含修复）
+        function mkpgb(bar, percent, callback) {
+            this.bar = bar;
+            this.percent = percent;
+            this.callback = callback;
+            this.locked = false;
+            this.init();
+        }
+
+        mkpgb.prototype = {
+            init: function () {
+                var mk = this, mdown = false;
+                
+                $(mk.bar).html('<div class="mkpgb-bar"></div><div class="mkpgb-cur"></div><div class="mkpgb-dot"></div>');
+                
+                mk.updateOffset = function() {
+                    var offset = $(mk.bar).offset();
+                    if (offset) {
+                        mk.minLength = offset.left;
+                        mk.maxLength = $(mk.bar).width() + mk.minLength;
+                        log('进度条偏移量更新: left=' + mk.minLength + ', width=' + $(mk.bar).width());
+                    }
+                };
+                
+                setTimeout(mk.updateOffset, 100);
+                
+                $(window).resize(function () {
+                    mk.updateOffset();
+                });
+                
+                $(mk.bar + " .mkpgb-dot").mousedown(function (e) {
+                    e.preventDefault();
+                });
+                
+                // 修复后的点击处理
+                $(mk.bar).mousedown(function (e) {
+                    if (!mk.locked) {
+                        mk.updateOffset();
+                        mdown = true;
+                        barMove(e);  // 只有在未锁定时才处理移动
+                    } else {
+                        log('进度条被锁定，无法操作');
+                    }
+                });
+                
+                $("html").mousemove(function (e) {
+                    barMove(e);
+                });
+                
+                $("html").mouseup(function (e) {
+                    mdown = false;
+                });
+
+                function barMove(e) {
+                    if (!mdown || mk.locked) return;  // 检查锁定状态
+                    var percent = 0;
+                    if (e.clientX < mk.minLength) {
+                        percent = 0;
+                    } else if (e.clientX > mk.maxLength) {
+                        percent = 1;
+                    } else {
+                        percent = (e.clientX - mk.minLength) / (mk.maxLength - mk.minLength);
+                    }
+                    log('进度条移动: ' + Math.round(percent * 100) + '%');
+                    mk.callback(percent);
+                    mk.goto(percent);
+                    return true;
+                }
+
+                mk.goto(mk.percent);
+                return true;
+            },
+            
+            goto: function (percent) {
+                if (percent > 1) percent = 1;
+                if (percent < 0) percent = 0;
+                this.percent = percent;
+                $(this.bar + " .mkpgb-dot").css("left", (percent * 100) + "%");
+                $(this.bar + " .mkpgb-cur").css("width", (percent * 100) + "%");
+                return true;
+            },
+            
+            lock: function (islock) {
+                if (islock) {
+                    this.locked = true;
+                    $(this.bar).addClass("mkpgb-locked");
+                    log('进度条已锁定');
+                } else {
+                    this.locked = false;
+                    $(this.bar).removeClass("mkpgb-locked");
+                    log('进度条已解锁');
+                }
+                updateStatus();
+                return true;
+            }
+        };
+
+        // 音乐进度条回调函数（包含修复）
+        function musicCallback(newVal) {
+            if (!audio || !audio.duration || isNaN(audio.duration)) {
+                log('警告: 音频未准备好，无法设置进度');
+                return;
+            }
+            
+            if (newVal < 0) newVal = 0;
+            if (newVal > 1) newVal = 1;
+            
+            var newTime = audio.duration * newVal;
+            
+            if (isNaN(newTime) || newTime < 0) {
+                log('警告: 计算的时间无效: ' + newTime);
+                return;
+            }
+            
+            try {
+                audio.currentTime = newTime;
+                document.getElementById('music-percent').textContent = Math.round(newVal * 100) + '%';
+                log('音乐进度设置为: ' + Math.round(newVal * 100) + '% (' + newTime.toFixed(2) + 's)');
+                updateStatus();
+            } catch (e) {
+                log('错误: 设置音频进度失败: ' + e.message);
+            }
+        }
+
+        function initProgressBar() {
+            music_bar = new mkpgb("#music-progress", 0, musicCallback);
+            music_bar.lock(true);  // 初始锁定
+            log('音乐进度条已初始化');
+            updateStatus();
+        }
+
+        function lockProgressBar() {
+            if (music_bar) {
+                music_bar.lock(true);
+            }
+        }
+
+        function unlockProgressBar() {
+            if (music_bar) {
+                music_bar.lock(false);
+            }
+        }
+
+        function setProgress(percent) {
+            if (music_bar) {
+                music_bar.goto(percent);
+                document.getElementById('music-percent').textContent = Math.round(percent * 100) + '%';
+            }
+        }
+
+        function loadAudio() {
+            audio = document.getElementById('test-audio');
+            
+            audio.addEventListener('loadedmetadata', function() {
+                log('音频元数据已加载，时长: ' + audio.duration.toFixed(2) + 's');
+                if (music_bar && !isNaN(audio.duration) && audio.duration > 0) {
+                    music_bar.lock(false);  // 解锁进度条
+                }
+                updateStatus();
+            });
+            
+            audio.addEventListener('timeupdate', function() {
+                if (audio.duration > 0) {
+                    var percent = audio.currentTime / audio.duration;
+                    if (music_bar) {
+                        music_bar.goto(percent);
+                    }
+                    document.getElementById('music-percent').textContent = Math.round(percent * 100) + '%';
+                }
+                updateStatus();
+            });
+            
+            audio.addEventListener('play', function() {
+                log('音频开始播放');
+                updateStatus();
+            });
+            
+            audio.addEventListener('pause', function() {
+                log('音频暂停');
+                updateStatus();
+            });
+            
+            log('音频事件监听器已绑定');
+        }
+
+        function playAudio() {
+            if (audio) {
+                audio.play();
+            }
+        }
+
+        function pauseAudio() {
+            if (audio) {
+                audio.pause();
+            }
+        }
+
+        function checkAudioState() {
+            if (audio) {
+                log('音频状态检查:');
+                log('  - readyState: ' + audio.readyState);
+                log('  - duration: ' + audio.duration);
+                log('  - currentTime: ' + audio.currentTime);
+                log('  - paused: ' + audio.paused);
+                log('  - ended: ' + audio.ended);
+                updateStatus();
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        $(document).ready(function() {
+            log('页面加载完成');
+            setTimeout(function() {
+                initProgressBar();
+                loadAudio();
+            }, 200);
+            
+            setInterval(updateStatus, 1000);  // 每秒更新状态
+        });
+    </script>
+</body>
+</html>

@@ -30,9 +30,32 @@ $(function () {
     rem.webTitle = document.title;      // 记录页面原本的标题
     rem.errCount = 0;                   // 连续播放失败的歌曲数归零
 
-    initProgress();     // 初始化音量条、进度条（进度条初始化要在 Audio 前，别问我为什么……）
-    initAudio();    // 初始化 audio 标签，事件绑定
-    initFavorites(); // 初始化收藏功能
+    // 确保CSS完全加载后再初始化，避免进度条偏移量计算错误
+    function initializeWhenReady() {
+        // 检查关键CSS是否已加载
+        var testElement = $('<div class="mkpgb-area" style="position:absolute;top:-1000px;width:100px;"></div>').appendTo('body');
+        var hasCSS = testElement.width() > 0;
+        testElement.remove();
+        
+        if (hasCSS) {
+            initProgress();     // 初始化音量条、进度条
+            initAudio();        // 初始化 audio 标签，事件绑定
+            initFavorites();    // 初始化收藏功能
+        } else {
+            // CSS还没加载完，继续等待
+            setTimeout(initializeWhenReady, 50);
+        }
+    }
+    
+    // 延迟初始化，确保DOM和CSS完全渲染
+    setTimeout(initializeWhenReady, 100);
+    
+    // 页面完全加载后重新计算进度条偏移量
+    $(window).on('load', function() {
+        setTimeout(function() {
+            refreshProgressBars();
+        }, 200);
+    });
 
 
     if (rem.isMobile) {  // 加了滚动条插件和没加滚动条插件所操作的对象是不一样的
@@ -751,6 +774,8 @@ function dataBox(choose) {
             } else if (rem.dislist == 0) {  // 搜索
                 $(".btn[data-action='search']").addClass('active');
             }
+            // 界面切换后刷新进度条
+            refreshProgressBars();
             break;
 
         case "sheet":   // 显示专辑
@@ -762,6 +787,8 @@ function dataBox(choose) {
             $("#sheet").fadeIn();
             $("#main-list").fadeOut();
             $(".btn[data-action='sheet']").addClass('active');
+            // 界面切换后刷新进度条
+            refreshProgressBars();
             break;
 
         case "player":  // 显示播放器
@@ -769,6 +796,8 @@ function dataBox(choose) {
             $("#sheet").fadeOut();
             $("#main-list").fadeOut();
             $(".btn[data-action='player']").addClass('active');
+            // 界面切换后刷新进度条
+            refreshProgressBars();
             break;
     }
 }
@@ -1103,4 +1132,16 @@ function loadFavoritesToPlaylist() {
 // 初始化收藏功能
 function initFavorites() {
     loadFavoritesToPlaylist();
+}
+
+// 刷新进度条偏移量（用于解决初始化时机问题）
+function refreshProgressBars() {
+    setTimeout(function() {
+        if (music_bar && music_bar.updateOffset) {
+            music_bar.updateOffset();
+        }
+        if (volume_bar && volume_bar.updateOffset) {
+            volume_bar.updateOffset();
+        }
+    }, 100);
 }

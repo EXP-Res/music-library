@@ -45,7 +45,7 @@ var musicList = [
     {
         id: "favorites",
         name: "我的收藏",   // 播放列表名字
-        cover: "images/history.png",          // 播放列表封面（使用不同的图标）
+        cover: "images/favorites.png",          // 播放列表封面（使用不同的图标）
         creatorName: "",        // 列表创建者名字
         creatorAvatar: "",      // 列表创建者头像
         item: [

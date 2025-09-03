@@ -288,6 +288,13 @@ function initAudio() {
     rem.audio[0].addEventListener('pause', audioPause);   // 暂停
     $(rem.audio[0]).on('ended', autoNextMusic);   // 播放结束
     rem.audio[0].addEventListener('error', audioErr);   // 播放器错误处理
+    
+    // 音频元数据加载完成时解锁进度条
+    rem.audio[0].addEventListener('loadedmetadata', function() {
+        if (music_bar && !isNaN(rem.audio[0].duration) && rem.audio[0].duration > 0) {
+            music_bar.lock(false);  // 解锁进度条
+        }
+    });
 }
 
 
@@ -338,18 +345,39 @@ function play(music) {
 
     rem.errCount = 0;   // 连续播放失败的歌曲数归零
     music_bar.goto(0);  // 进度条强制归零
+    music_bar.lock(true);  // 先锁定进度条，等元数据加载后再解锁
     changeCover(music);    // 更新封面展示
     loadLocalLyric(music, lyricCallback);   // 加载本地歌词
     // ajaxLyric(music, lyricCallback);     // ajax加载歌词
-    music_bar.lock(false);  // 取消进度条锁定
 }
 
 // 音乐进度条拖动回调函数
 function mBcallback(newVal) {
+    // 检查音频对象和播放状态
+    if (!rem.audio || !rem.audio[0] || !rem.audio[0].duration || isNaN(rem.audio[0].duration)) {
+        console.warn('音频未准备好，无法设置进度');
+        return;
+    }
+    
+    // 确保newVal在有效范围内
+    if (newVal < 0) newVal = 0;
+    if (newVal > 1) newVal = 1;
+    
     var newTime = rem.audio[0].duration * newVal;
-    // 应用新的进度
-    rem.audio[0].currentTime = newTime;
-    refreshLyric(newTime);  // 强制滚动歌词到当前进度
+    
+    // 检查计算结果是否有效
+    if (isNaN(newTime) || newTime < 0) {
+        console.warn('计算的时间无效:', newTime);
+        return;
+    }
+    
+    try {
+        // 应用新的进度
+        rem.audio[0].currentTime = newTime;
+        refreshLyric(newTime);  // 强制滚动歌词到当前进度
+    } catch (e) {
+        console.error('设置音频进度失败:', e);
+    }
 }
 
 // 音量条变动回调函数
@@ -398,34 +426,48 @@ mkpgb.prototype = {
         var mk = this, mdown = false;
         // 加载进度条html元素
         $(mk.bar).html('<div class="mkpgb-bar"></div><div class="mkpgb-cur"></div><div class="mkpgb-dot"></div>');
-        // 获取偏移量
-        mk.minLength = $(mk.bar).offset().left;
-        mk.maxLength = $(mk.bar).width() + mk.minLength;
-        // 窗口大小改变偏移量重置
-        $(window).resize(function () {
+        
+        // 延迟计算偏移量，确保CSS已渲染
+        mk.updateOffset = function() {
             mk.minLength = $(mk.bar).offset().left;
             mk.maxLength = $(mk.bar).width() + mk.minLength;
+        };
+        
+        // 初始计算偏移量
+        setTimeout(mk.updateOffset, 100);
+        
+        // 窗口大小改变偏移量重置
+        $(window).resize(function () {
+            mk.updateOffset();
         });
+        
         // 监听小点的鼠标按下事件
         $(mk.bar + " .mkpgb-dot").mousedown(function (e) {
             e.preventDefault();    // 取消原有事件的默认动作
         });
+        
         // 监听进度条整体的鼠标按下事件
         $(mk.bar).mousedown(function (e) {
-            if (!mk.locked) mdown = true;
-            barMove(e);
+            if (!mk.locked) {
+                // 确保偏移量是最新的
+                mk.updateOffset();
+                mdown = true;
+                barMove(e);  // 只有在未锁定时才处理移动
+            }
         });
+        
         // 监听鼠标移动事件，用于拖动
         $("html").mousemove(function (e) {
             barMove(e);
         });
+        
         // 监听鼠标弹起事件，用于释放拖动
         $("html").mouseup(function (e) {
             mdown = false;
         });
 
         function barMove(e) {
-            if (!mdown) return;
+            if (!mdown || mk.locked) return;  // 检查锁定状态
             var percent = 0;
             if (e.clientX < mk.minLength) {
                 percent = 0;
