@@ -356,7 +356,7 @@ function mBcallback(newVal) {
     // 检查音频对象和播放状态
     if (!rem.audio || !rem.audio[0] || !rem.audio[0].duration || isNaN(rem.audio[0].duration)) {
         console.warn('音频未准备好，无法设置进度');
-        return;
+        return false;  // 返回false表示操作失败
     }
     
     // 确保newVal在有效范围内
@@ -368,15 +368,17 @@ function mBcallback(newVal) {
     // 检查计算结果是否有效
     if (isNaN(newTime) || newTime < 0) {
         console.warn('计算的时间无效:', newTime);
-        return;
+        return false;  // 返回false表示操作失败
     }
     
     try {
         // 应用新的进度
         rem.audio[0].currentTime = newTime;
         refreshLyric(newTime);  // 强制滚动歌词到当前进度
+        return true;  // 返回true表示操作成功
     } catch (e) {
         console.error('设置音频进度失败:', e);
+        return false;  // 返回false表示操作失败
     }
 }
 
@@ -476,8 +478,12 @@ mkpgb.prototype = {
             } else {
                 percent = (e.clientX - mk.minLength) / (mk.maxLength - mk.minLength);
             }
-            mk.callback(percent);
-            mk.goto(percent);
+            
+            // 先尝试回调，只有成功时才更新视觉
+            var callbackSuccess = mk.callback(percent);
+            if (callbackSuccess !== false) {
+                mk.goto(percent);
+            }
             return true;
         }
 
