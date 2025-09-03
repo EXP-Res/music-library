@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>完整收藏功能测试</title>
+    <script src="js/jquery.min.js"></script>
+    <script src="js/musicList.js"></script>
+    <script src="js/functions.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-section { border: 1px solid #ccc; margin: 10px 0; padding: 15px; }
+        .test-result { margin: 5px 0; padding: 5px; }
+        .pass { background: #d4edda; color: #155724; }
+        .fail { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+        button { margin: 5px; padding: 8px 15px; }
+        #log { background: #f8f9fa; padding: 10px; font-family: monospace; white-space: pre-wrap; max-height: 300px; overflow-y: auto; }
+    </style>
+</head>
+<body>
+    <h1>完整收藏功能测试</h1>
+    
+    <div class="test-section">
+        <h3>基础功能测试</h3>
+        <button onclick="testBasicFunctions()">运行基础测试</button>
+        <div id="basic-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>收藏操作测试</h3>
+        <button onclick="testFavoriteOperations()">测试收藏操作</button>
+        <button onclick="clearAllFavorites()">清空所有收藏</button>
+        <div id="favorite-results"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>播放列表结构</h3>
+        <button onclick="showPlaylistStructure()">显示结构</button>
+        <div id="playlist-structure"></div>
+    </div>
+    
+    <div class="test-section">
+        <h3>调试日志</h3>
+        <button onclick="clearLog()">清空日志</button>
+        <div id="log"></div>
+    </div>
+
+    <script>
+        function log(message) {
+            var logDiv = document.getElementById('log');
+            logDiv.textContent += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addResult(containerId, message, type) {
+            var container = document.getElementById(containerId);
+            var div = document.createElement('div');
+            div.className = 'test-result ' + type;
+            div.textContent = message;
+            container.appendChild(div);
+        }
+
+        function clearResults(containerId) {
+            document.getElementById(containerId).innerHTML = '';
+        }
+
+        function testBasicFunctions() {
+            clearResults('basic-results');
+            log('开始基础功能测试');
+
+            // 测试Cookie基础功能
+            setCookie('test', 'hello', 1);
+            var testValue = getCookie('test');
+            if (testValue === 'hello') {
+                addResult('basic-results', '✓ Cookie 基础功能正常', 'pass');
+            } else {
+                addResult('basic-results', '✗ Cookie 基础功能失败', 'fail');
+            }
+
+            // 测试musicList是否存在
+            if (typeof musicList !== 'undefined' && musicList.length > 0) {
+                addResult('basic-results', '✓ musicList 已加载，长度: ' + musicList.length, 'pass');
+            } else {
+                addResult('basic-results', '✗ musicList 未正确加载', 'fail');
+            }
+
+            // 测试收藏列表是否存在
+            if (musicList[3] && musicList[3].name === '我的收藏') {
+                addResult('basic-results', '✓ 收藏列表配置正确', 'pass');
+            } else {
+                addResult('basic-results', '✗ 收藏列表配置错误', 'fail');
+            }
+
+            // 测试收藏相关函数是否存在
+            var functions = ['getFavorites', 'saveFavorites', 'toggleFavorite', 'isFavorite'];
+            for (var i = 0; i < functions.length; i++) {
+                if (typeof window[functions[i]] === 'function') {
+                    addResult('basic-results', '✓ 函数 ' + functions[i] + ' 存在', 'pass');
+                } else {
+                    addResult('basic-results', '✗ 函数 ' + functions[i] + ' 不存在', 'fail');
+                }
+            }
+
+            log('基础功能测试完成');
+        }
+
+        function testFavoriteOperations() {
+            clearResults('favorite-results');
+            log('开始收藏操作测试');
+
+            // 清空收藏列表
+            saveFavorites([]);
+            var favorites = getFavorites();
+            if (favorites.length === 0) {
+                addResult('favorite-results', '✓ 清空收藏列表成功', 'pass');
+            } else {
+                addResult('favorite-results', '✗ 清空收藏列表失败', 'fail');
+            }
+
+            // 添加测试歌曲
+            var testSong = {
+                id: "test123",
+                name: "测试歌曲1",
+                artist: "测试歌手",
+                album: "测试专辑",
+                url: "test.mp3",
+                pic: "test.jpg",
+                lyric: "test.lrc",
+                source: "local"
+            };
+
+            favorites.push(testSong);
+            saveFavorites(favorites);
+
+            var savedFavorites = getFavorites();
+            if (savedFavorites.length === 1 && savedFavorites[0].name === "测试歌曲1") {
+                addResult('favorite-results', '✓ 添加第一首歌曲成功', 'pass');
+            } else {
+                addResult('favorite-results', '✗ 添加第一首歌曲失败', 'fail');
+            }
+
+            // 添加第二首歌曲
+            var testSong2 = {
+                id: "test456",
+                name: "测试歌曲2",
+                artist: "测试歌手2",
+                album: "测试专辑2",
+                url: "test2.mp3",
+                pic: "test2.jpg",
+                lyric: "test2.lrc",
+                source: "local"
+            };
+
+            savedFavorites.push(testSong2);
+            saveFavorites(savedFavorites);
+
+            var finalFavorites = getFavorites();
+            if (finalFavorites.length === 2) {
+                addResult('favorite-results', '✓ 添加第二首歌曲成功，总数: ' + finalFavorites.length, 'pass');
+            } else {
+                addResult('favorite-results', '✗ 添加第二首歌曲失败，总数: ' + finalFavorites.length, 'fail');
+            }
+
+            // 测试isFavorite函数
+            if (isFavorite(testSong) && isFavorite(testSong2)) {
+                addResult('favorite-results', '✓ isFavorite 函数工作正常', 'pass');
+            } else {
+                addResult('favorite-results', '✗ isFavorite 函数工作异常', 'fail');
+            }
+
+            // 更新musicList中的收藏列表
+            loadFavoritesToPlaylist();
+            if (musicList[3].item.length === 2) {
+                addResult('favorite-results', '✓ 收藏列表同步到musicList成功', 'pass');
+            } else {
+                addResult('favorite-results', '✗ 收藏列表同步到musicList失败', 'fail');
+            }
+
+            log('收藏操作测试完成');
+        }
+
+        function clearAllFavorites() {
+            saveFavorites([]);
+            loadFavoritesToPlaylist();
+            log('已清空所有收藏');
+            addResult('favorite-results', 'ℹ 所有收藏已清空', 'info');
+        }
+
+        function showPlaylistStructure() {
+            clearResults('playlist-structure');
+            log('显示播放列表结构');
+
+            for (var i = 0; i < musicList.length; i++) {
+                var list = musicList[i];
+                var message = '列表 ' + i + ': ' + list.name + ' (ID: ' + list.id + ', 歌曲数: ' + (list.item ? list.item.length : 0) + ')';
+                addResult('playlist-structure', message, 'info');
+            }
+        }
+
+        function clearLog() {
+            document.getElementById('log').textContent = '';
+        }
+
+        // 页面加载时运行基础测试
+        $(document).ready(function() {
+            log('页面加载完成，开始初始化');
+            
+            // 检查是否有rem变量
+            if (typeof rem === 'undefined') {
+                window.rem = {}; // 创建全局rem对象
+            }
+            
+            // 运行基础测试
+            setTimeout(testBasicFunctions, 1000);
+        });
+    </script>
+</body>
+</html>

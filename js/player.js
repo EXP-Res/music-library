@@ -142,7 +142,8 @@ function prevMusic() {
 // 播放下一首歌
 function nextMusic() {
     switch (rem.order ? rem.order : 1) {
-        case 1, 2:
+        case 1:
+        case 2:
             playList(rem.playid + 1);
             break;
         case 3:

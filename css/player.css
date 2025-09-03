@@ -402,6 +402,46 @@ body {
     background-position: -120px -40px;
 }
 
+/* 收藏图标 */
+.icon-favorite {
+    background-position: -80px -80px;
+    position: relative;
+}
+.icon-favorite:hover {
+    background-position: -120px -80px;
+}
+.icon-favorite.favorited {
+    background-position: -160px -80px;
+}
+.icon-favorite.favorited:hover {
+    background-position: -200px -80px;
+}
+
+/* 使用CSS内容作为收藏图标的临时解决方案 */
+.icon-favorite:before {
+    content: "♡";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 16px;
+    color: #666;
+    font-weight: bold;
+}
+
+.icon-favorite.favorited:before {
+    content: "♥";
+    color: #ff4757;
+}
+
+.icon-favorite:hover:before {
+    color: #333;
+}
+
+.icon-favorite.favorited:hover:before {
+    color: #ff3838;
+}
+
 /* 分享弹窗中的链接框 */
 .share-url {
     width: 100%;
