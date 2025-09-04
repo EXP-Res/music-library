@@ -241,6 +241,28 @@ $(function () {
         musicInfo(rem.playlist, rem.playid);
     });
 
+    // 全屏歌词按钮的处理
+    $("#lyric-fullscreen").click(function () {
+        if (rem.playid === undefined) {
+            layer.msg('请先播放歌曲');
+            return false;
+        }
+
+        enterFullscreenLyric();
+    });
+
+    // 退出全屏歌词按钮的处理
+    $("#exit-fullscreen").click(function () {
+        exitFullscreenLyric();
+    });
+
+    // ESC键退出全屏
+    $(document).keydown(function (e) {
+        if (e.keyCode === 27 && $("#fullscreen-lyric-container").is(":visible")) {
+            exitFullscreenLyric();
+        }
+    });
+
     // 播放、暂停按钮的处理
     $(".btn-play").click(function () {
         pause();
@@ -1144,4 +1166,52 @@ function refreshProgressBars() {
             volume_bar.updateOffset();
         }
     }, 100);
+}
+
+// 全屏歌词功能
+function enterFullscreenLyric() {
+    if (rem.playid === undefined) return;
+    
+    var music = musicList[rem.playlist].item[rem.playid];
+    
+    // 更新全屏歌词的歌曲信息
+    $(".fullscreen-song-name").text(music.name);
+    $(".fullscreen-song-artist").text(music.artist);
+    
+    // 复制当前歌词到全屏容器
+    var currentLyric = $("#lyric").html();
+    $("#fullscreen-lyric").html(currentLyric);
+    
+    // 显示全屏容器
+    $("#fullscreen-lyric-container").fadeIn(300);
+    
+    // 滚动到当前播放的歌词
+    scrollFullscreenLyricToPlaying();
+}
+
+function exitFullscreenLyric() {
+    $("#fullscreen-lyric-container").fadeOut(300);
+}
+
+function scrollFullscreenLyricToPlaying() {
+    var playingLyric = $("#fullscreen-lyric .lplaying");
+    if (playingLyric.length > 0) {
+        var container = $(".fullscreen-lyric-content");
+        var scrollTop = playingLyric.offset().top - container.offset().top + container.scrollTop() - container.height() / 2;
+        container.animate({
+            scrollTop: scrollTop
+        }, 500);
+    }
+}
+
+// 同步全屏歌词的滚动（在歌词更新时调用）
+function syncFullscreenLyric() {
+    if ($("#fullscreen-lyric-container").is(":visible")) {
+        // 复制当前歌词到全屏容器
+        var currentLyric = $("#lyric").html();
+        $("#fullscreen-lyric").html(currentLyric);
+        
+        // 滚动到当前播放的歌词
+        scrollFullscreenLyricToPlaying();
+    }
 }
