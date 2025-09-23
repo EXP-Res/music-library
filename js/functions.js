@@ -446,15 +446,157 @@ function thisShare(obj) {
 // 下载歌曲
 // 参数：包含歌曲信息的数组
 function download(music) {
-    if (music.url == 'err' || music.url == "" || music.url == null) {
-        layer.msg('这首歌不支持下载');
+    if (music.url == 'err' || music.url == "" || music.url == null || music.url === undefined) {
+        layer.msg('这首歌不支持下载', { icon: 2 });
         return;
     }
-    openDownloadDialog(music.url, music.name + ' - ' + music.artist);
+    
+    // 调试信息
+    if (mkPlayer.debug) {
+        console.log('准备下载歌曲:', music.name, '地址:', music.url);
+    }
+    
+    try {
+        // 构建完整的下载URL
+        var downloadUrl = music.url;
+        
+        // 如果是相对路径，构建完整URL
+        if (!downloadUrl.startsWith('http')) {
+            // 获取当前页面的基础URL
+            var baseUrl = window.location.origin + window.location.pathname.substring(0, window.location.pathname.lastIndexOf('/') + 1);
+            if (downloadUrl.startsWith('./')) {
+                downloadUrl = baseUrl + downloadUrl.substring(2);
+            } else if (downloadUrl.startsWith('/')) {
+                downloadUrl = window.location.origin + downloadUrl;
+            } else {
+                downloadUrl = baseUrl + downloadUrl;
+            }
+        }
+        
+        // 构建文件名
+        var fileName = music.name + ' - ' + music.artist + '.mp3';
+        // 清理文件名中的非法字符
+        fileName = fileName.replace(/[<>:"/\\|?*]/g, '_');
+        
+        // GitHub Pages下载处理
+        downloadFromGitHubPages(downloadUrl, fileName, music);
+        
+    } catch (e) {
+        console.error('下载失败:', e);
+        layer.msg('下载失败：' + e.message, { icon: 2 });
+    }
+}
+
+// 专门用于GitHub Pages的下载处理
+function downloadFromGitHubPages(url, fileName, music) {
+    // 方法1: 尝试直接下载
+    try {
+        var aLink = document.createElement('a');
+        aLink.href = url;
+        aLink.download = fileName;
+        aLink.target = '_blank';
+        
+        // 添加到页面并触发点击
+        document.body.appendChild(aLink);
+        aLink.click();
+        document.body.removeChild(aLink);
+        
+        layer.msg('开始下载：' + music.name, { icon: 1, time: 2000 });
+        
+        // 如果2秒后下载没有开始，提供备用方案
+        setTimeout(function() {
+            showDownloadAlternatives(url, fileName, music);
+        }, 2000);
+        
+    } catch (e) {
+        console.error('直接下载失败:', e);
+        showDownloadAlternatives(url, fileName, music);
+    }
+}
+
+// 显示下载备用方案
+function showDownloadAlternatives(url, fileName, music) {
+    var content = '<div style="text-align: left; padding: 20px;">' +
+        '<h3>下载：' + music.name + '</h3>' +
+        '<p>如果自动下载没有开始，请尝试以下方式：</p>' +
+        '<div style="margin: 15px 0;">' +
+            '<button type="button" onclick="openInNewTab(\'' + url + '\')" style="margin: 5px; padding: 8px 15px; background: #007cba; color: white; border: none; cursor: pointer; border-radius: 4px;">在新标签页中打开</button>' +
+        '</div>' +
+        '<div style="margin: 15px 0;">' +
+            '<button type="button" onclick="copyDownloadLink(\'' + url + '\')" style="margin: 5px; padding: 8px 15px; background: #28a745; color: white; border: none; cursor: pointer; border-radius: 4px;">复制下载链接</button>' +
+        '</div>' +
+        '<div style="margin: 15px 0; font-size: 12px; color: #666;">' +
+            '<p><strong>下载链接：</strong></p>' +
+            '<input type="text" value="' + url + '" readonly style="width: 100%; padding: 5px; font-size: 12px; border: 1px solid #ccc;" onclick="this.select()">' +
+        '</div>' +
+        '<div style="margin: 15px 0; font-size: 12px; color: #666;">' +
+            '<p><strong>使用说明：</strong></p>' +
+            '<p>• 点击"在新标签页中打开"，然后右键点击播放器选择"另存为"</p>' +
+            '<p>• 复制链接后，可以使用下载工具（如迅雷、IDM等）进行下载</p>' +
+            '<p>• 或者直接右键点击链接选择"另存为"</p>' +
+        '</div>' +
+    '</div>';
+    
+    layer.open({
+        type: 1,
+        title: '下载选项',
+        area: ['500px', 'auto'],
+        content: content,
+        btn: ['关闭'],
+        btn1: function(index) {
+            layer.close(index);
+        }
+    });
+}
+
+// 在新标签页中打开链接
+function openInNewTab(url) {
+    window.open(url, '_blank');
+    layer.msg('已在新标签页中打开', { icon: 1 });
+}
+
+// 复制下载链接到剪贴板
+function copyDownloadLink(url) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(url).then(function() {
+            layer.msg('下载链接已复制到剪贴板', { icon: 1 });
+        }).catch(function(err) {
+            console.error('复制失败:', err);
+            fallbackCopyText(url);
+        });
+    } else {
+        fallbackCopyText(url);
+    }
+}
+
+// 备用复制方法
+function fallbackCopyText(text) {
+    var textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        var successful = document.execCommand('copy');
+        if (successful) {
+            layer.msg('下载链接已复制到剪贴板', { icon: 1 });
+        } else {
+            layer.msg('复制失败，请手动复制链接', { icon: 2 });
+        }
+    } catch (err) {
+        console.error('复制失败:', err);
+        layer.msg('复制失败，请手动复制链接', { icon: 2 });
+    }
+    
+    document.body.removeChild(textArea);
 }
 
 /**
- * 通用的打开下载对话框方法，没有测试过具体兼容性
+ * 通用的打开下载对话框方法
  * @param url 下载地址，也可以是一个blob对象，必选
  * @param saveName 保存文件名，可选
  * http://www.cnblogs.com/liuxianan/p/js-download.html
@@ -463,17 +605,50 @@ function openDownloadDialog(url, saveName) {
     if (typeof url == 'object' && url instanceof Blob) {
         url = URL.createObjectURL(url); // 创建blob地址
     }
-    var aLink = document.createElement('a');
-    aLink.href = url;
-    aLink.target = "_blank";
-    aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名，可以不要后缀，注意，file:///模式下不会生效
-    var event;
-    if (window.MouseEvent) event = new MouseEvent('click');
-    else {
-        event = document.createEvent('MouseEvents');
-        event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+    
+    try {
+        // 创建隐藏的下载链接
+        var aLink = document.createElement('a');
+        aLink.href = url;
+        aLink.target = "_blank";
+        aLink.download = saveName || ''; // HTML5新增的属性，指定保存文件名
+        
+        // 添加到DOM中
+        document.body.appendChild(aLink);
+        
+        // 触发点击事件
+        if (typeof aLink.click === 'function') {
+            aLink.click();
+        } else {
+            // 兼容旧浏览器
+            var event;
+            if (window.MouseEvent) {
+                event = new MouseEvent('click');
+            } else {
+                event = document.createEvent('MouseEvents');
+                event.initMouseEvent('click', true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            }
+            aLink.dispatchEvent(event);
+        }
+        
+        // 清理DOM
+        setTimeout(function() {
+            document.body.removeChild(aLink);
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+        }, 100);
+        
+    } catch (e) {
+        console.error('下载失败:', e);
+        // 如果HTML5下载失败，尝试直接打开链接
+        try {
+            window.open(url, '_blank');
+        } catch (openError) {
+            console.error('打开链接也失败:', openError);
+            layer.msg('无法下载文件，请检查浏览器设置', { icon: 2 });
+        }
     }
-    aLink.dispatchEvent(event);
 }
 
 // 获取外链的ajax回调函数
