@@ -979,6 +979,26 @@ function playerReaddata(key) {
 
 // 获取收藏列表
 function getFavorites() {
+    // 优先使用localStorage，如果不支持则回退到Cookie
+    if (typeof Storage !== "undefined") {
+        try {
+            var favorites = localStorage.getItem('musicFavorites');
+            if (favorites) {
+                var parsed = JSON.parse(favorites);
+                // 调试信息
+                if (mkPlayer.debug) {
+                    console.log('从localStorage读取收藏，共 ' + parsed.length + ' 首歌曲');
+                }
+                return Array.isArray(parsed) ? parsed : [];
+            }
+        } catch (e) {
+            if (mkPlayer.debug) {
+                console.error('从localStorage读取收藏列表失败:', e);
+            }
+        }
+    }
+    
+    // 回退到Cookie方式（兼容性）
     var favorites = getCookie('musicFavorites');
     if (favorites) {
         try {
@@ -987,7 +1007,7 @@ function getFavorites() {
             if (mkPlayer.debug) {
                 console.log('从Cookie读取收藏，共 ' + parsed.length + ' 首歌曲');
             }
-            return parsed;
+            return Array.isArray(parsed) ? parsed : [];
         } catch (e) {
             if (mkPlayer.debug) {
                 console.error('解析收藏数据失败:', e);
@@ -998,13 +1018,48 @@ function getFavorites() {
     return [];
 }
 
-// 保存收藏列表到Cookie
+// 保存收藏列表（优先使用localStorage）
 function saveFavorites(favorites) {
-    setCookie('musicFavorites', JSON.stringify(favorites), 365); // 保存1年
+    var dataString = JSON.stringify(favorites);
+    var success = false;
     
-    // 调试信息
-    if (mkPlayer.debug) {
-        console.log('保存收藏到Cookie，共 ' + favorites.length + ' 首歌曲');
+    // 优先使用localStorage
+    if (typeof Storage !== "undefined") {
+        try {
+            localStorage.setItem('musicFavorites', dataString);
+            success = true;
+            // 调试信息
+            if (mkPlayer.debug) {
+                console.log('保存收藏到localStorage，共 ' + favorites.length + ' 首歌曲，大小: ' + dataString.length + ' 字符');
+            }
+        } catch (e) {
+            if (mkPlayer.debug) {
+                console.error('localStorage保存失败:', e);
+            }
+        }
+    }
+    
+    // 如果localStorage失败，尝试Cookie（但有大小限制）
+    if (!success) {
+        try {
+            // 检查数据大小
+            if (dataString.length > 3500) { // 留一些余量，避免超过4KB
+                if (mkPlayer.debug) {
+                    console.warn('收藏数据过大 (' + dataString.length + ' 字符)，可能保存失败');
+                }
+                layer.msg('收藏数据过大，建议减少收藏数量', { icon: 2, time: 3000 });
+            }
+            setCookie('musicFavorites', dataString, 365); // 保存1年
+            // 调试信息
+            if (mkPlayer.debug) {
+                console.log('保存收藏到Cookie，共 ' + favorites.length + ' 首歌曲，大小: ' + dataString.length + ' 字符');
+            }
+        } catch (e) {
+            if (mkPlayer.debug) {
+                console.error('Cookie保存失败:', e);
+            }
+            layer.msg('收藏保存失败，数据可能过大', { icon: 2, time: 3000 });
+        }
     }
 }
 
@@ -1153,7 +1208,44 @@ function loadFavoritesToPlaylist() {
 
 // 初始化收藏功能
 function initFavorites() {
+    // 数据迁移：将Cookie中的收藏数据迁移到localStorage
+    migrateFavoritesData();
     loadFavoritesToPlaylist();
+}
+
+// 数据迁移：从Cookie迁移到localStorage
+function migrateFavoritesData() {
+    if (typeof Storage !== "undefined") {
+        // 检查localStorage中是否已有数据
+        var localData = localStorage.getItem('musicFavorites');
+        
+        if (!localData) {
+            // localStorage没有数据，检查Cookie中是否有数据需要迁移
+            var cookieData = getCookie('musicFavorites');
+            if (cookieData) {
+                try {
+                    // 验证Cookie数据的有效性
+                    var parsed = JSON.parse(cookieData);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        // 迁移数据到localStorage
+                        localStorage.setItem('musicFavorites', cookieData);
+                        
+                        // 调试信息
+                        if (mkPlayer.debug) {
+                            console.log('已将 ' + parsed.length + ' 首收藏歌曲从Cookie迁移到localStorage');
+                        }
+                        
+                        // 可选：清除Cookie中的数据（释放空间）
+                        // document.cookie = "musicFavorites=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+                    }
+                } catch (e) {
+                    if (mkPlayer.debug) {
+                        console.error('迁移收藏数据时解析失败:', e);
+                    }
+                }
+            }
+        }
+    }
 }
 
 // 刷新进度条偏移量（用于解决初始化时机问题）
