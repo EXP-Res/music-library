@@ -5064,6 +5064,19 @@
                 "lyric_id": "596cc35cab84fa8b67b16859774e58a2"
             },
             {
+                "id": "0c16f9b5a22bc3d73af892342b3c00f1",
+                "name": "宋雨琦 x 五月天 - Radio",
+                "artist": "宋雨琦 x 五月天",
+                "album": "20251116五月天上海演唱会",
+                "url": "static/歌手专辑/宋雨琦 x 五月天 - Radio.mp3",
+                "pic": "",
+                "lyric": "static/歌手专辑/宋雨琦 x 五月天 - Radio.lrc",
+                "source": "local",
+                "url_id": "0c16f9b5a22bc3d73af892342b3c00f1",
+                "pic_id": "",
+                "lyric_id": "0c16f9b5a22bc3d73af892342b3c00f1"
+            },
+            {
                 "id": "2e57a50ca20bab5518a6e3a12a75ec01",
                 "name": "牛奶咖啡 - 越长大越孤单",
                 "artist": "牛奶@咖啡",
