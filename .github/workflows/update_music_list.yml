@@ -65,20 +65,23 @@ jobs:
         # 保存生成的文件
         LATEST_JSON="${{ steps.changes.outputs.json_file }}"
         
+        # 保存文件到临时目录
+        TEMP_DIR="/tmp/files_to_commit"
+        mkdir -p $TEMP_DIR
+        cp "$LATEST_JSON" "$TEMP_DIR/"
+        cp js/player.js "$TEMP_DIR/"
+        
         # 配置 git 使用 token 认证
         git config --global user.email "action@github.com"
         git config --global user.name "GitHub Action"
         git config --global credential.helper store
         echo "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com" > ~/.git-credentials
         
-        # 获取 master 分支信息但不切换
+        # 获取 master 分支信息
         git fetch origin master:master --depth 1
         
-        # 在当前分支保存要提交的文件
-        TEMP_DIR="/tmp/files_to_commit"
-        mkdir -p $TEMP_DIR
-        cp "$LATEST_JSON" "$TEMP_DIR/"
-        cp js/player.js "$TEMP_DIR/"
+        # 暂存 custom 分支的修改
+        git stash
         
         # 切换到 master 分支
         git checkout master
