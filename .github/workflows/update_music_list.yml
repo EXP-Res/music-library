@@ -64,8 +64,8 @@ jobs:
         # 暂存当前的修改
         git stash
         # 检出 master 分支
-        git fetch origin master:master --single-branch --depth 1
-        git checkout master
+        git fetch origin master --depth 1
+        git checkout -b master origin/master
 
     - name: Restore and copy files to master
       if: steps.changes.outputs.has_changes == 'true'
