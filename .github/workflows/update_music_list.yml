@@ -65,7 +65,7 @@ jobs:
         # 保存生成的文件
         LATEST_JSON="${{ steps.changes.outputs.json_file }}"
         
-        # 保存文件到临时目录
+        # 保存新歌单的相关文件到临时目录
         TEMP_DIR="/tmp/files_to_commit"
         mkdir -p $TEMP_DIR
         cp "$LATEST_JSON" "$TEMP_DIR/"
@@ -77,7 +77,7 @@ jobs:
         git config --global credential.helper store
         echo "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com" > ~/.git-credentials
         
-        # 撤回 custom 分支的所有修改
+        # 撤回 custom 分支的所有修改（Github Page 设置在 master，custom 的变更没有意义）
         git reset --hard HEAD
         
         # 获取 master 分支信息
@@ -92,11 +92,11 @@ jobs:
         # 确保目录存在
         mkdir -p static js
         
-        # 从临时目录复制新文件
+        # 从临时目录复制新文件（即新歌单的相关文件复制到 master）
         cp "$TEMP_DIR/$(basename $LATEST_JSON)" static/
         cp "$TEMP_DIR/player.js" js/
         
-        # 提交并推送
+        # 提交并推送（master 需要关闭分支保护规则才能推送）
         git add static/music_list_*.json js/player.js
         if ! git diff --cached --quiet; then
           git commit -m "Update music list from custom branch"
