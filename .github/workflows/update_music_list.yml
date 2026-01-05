@@ -94,7 +94,7 @@ jobs:
         cp "$TEMP_DIR/$(basename $LATEST_JSON)" static/
         cp "$TEMP_DIR/player.js" js/
         
-        # 提交并推送
+        # 提交并推送（需要移除 master 分支保护）
         git add static/music_list_*.json js/player.js
         if ! git diff --cached --quiet; then
           git commit -m "Update music list from custom branch"
