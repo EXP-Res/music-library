@@ -89,16 +89,16 @@ def main(args) :
             lyric_path = f"{rel_dir}/{music_name}{LYRIC_SUFFIX}"
             pic_path = f"{rel_dir}/{music_name}{PIC_SUFFIX}"
 
-            # 把本地路径修改为 Github 仓库的在线路径，绕过 Github Page 构建时的硬盘限制
-            rel_path = f"{MUSIC_PREFEX}/{rel_path}"
-            lyric_path = f"{MUSIC_PREFEX}/{lyric_path}"
-            pic_path = f"{MUSIC_PREFEX}/{pic_path}"
-
             # 检查歌词文件和封面图片文件是否存在
             if not os.path.exists(os.path.join(WORK_DIR, lyric_path)) :
                 lyric_path = ""
             if not os.path.exists(os.path.join(WORK_DIR, pic_path)) :
                 pic_path = ""
+
+            # 把本地路径修改为 Github 仓库的在线路径，绕过 Github Page 构建时的硬盘限制
+            rel_path = f"{MUSIC_PREFEX}/{rel_path}"
+            lyric_path = f"{MUSIC_PREFEX}/{lyric_path}" if lyric_path else ""
+            pic_path = f"{MUSIC_PREFEX}/{pic_path}" if pic_path else ""
 
             # 获取 MP3 文件的元数据
             try:
