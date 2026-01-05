@@ -86,8 +86,10 @@ jobs:
         # 切换到 master 分支
         git checkout master
         
-        # 清理旧的 music_list 文件
-        rm -f static/music_list_*.json 2>/dev/null || true
+        # 删除 master 上所有旧的 music_list 文件
+        git rm -f static/music_list_*.json 2>/dev/null || true
+        
+        # 确保目录存在
         mkdir -p static js
         
         # 复制新文件
