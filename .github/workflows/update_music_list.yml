@@ -15,11 +15,12 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout repository
+    - name: Checkout repository (custom branch)
       uses: actions/checkout@v3
       with:
         ref: custom
         fetch-depth: 1
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Disk usage (before)
       run: |
@@ -44,21 +45,63 @@ jobs:
     - name: Run update_music_list.py
       run: |
         python py/gen_music_list.py -i "${{ vars.ignores }}"
+#        export ignores="铃声,经典老歌,苗苗,苏乔,纯音乐,其他,茗记,高达,犬夜叉,死神,宫崎骏,倚天屠龙记,从零,高达,一念永恒,见或不见,羁绊,求婚,分飞,生日,鹿鼎记,义海豪情,东成西就,步步惊心,爸爸,那些年,东城西就,女孩,生日,张子枫,旧戏,泰坦,封神演义,Kotoko,ユナイト,哀と悲,失落之塔,半生雪,吹灭小山河,混沌,尘劫,3月9日,萱草花,大时代,爱情公寓,永别京华,红尘,粗面鱼腩,笼,吴观辰,林一"
+#        python py/gen_music_list.py -i "${ignores}"
 
     - name: Check for changes
       id: changes
       run: |
         if git diff --name-only | grep -q "music_list_"; then
           echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          LATEST_JSON=$(ls -t static/music_list_*.json 2>/dev/null | head -1)
+          echo "json_file=$LATEST_JSON" >> "$GITHUB_OUTPUT"
         else
           echo "has_changes=false" >> "$GITHUB_OUTPUT"
         fi
 
-    - name: Commit and push changes
+    - name: Copy changed files to master and commit
       if: steps.changes.outputs.has_changes == 'true'
       run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add -A
-        git commit -m "Update music list"
-        git push
+        # 保存生成的文件
+        LATEST_JSON="${{ steps.changes.outputs.json_file }}"
+        
+        # 保存文件到临时目录
+        TEMP_DIR="/tmp/files_to_commit"
+        mkdir -p $TEMP_DIR
+        cp "$LATEST_JSON" "$TEMP_DIR/"
+        cp js/player.js "$TEMP_DIR/"
+        
+        # 配置 git 使用 token 认证
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git config --global credential.helper store
+        echo "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com" > ~/.git-credentials
+        
+        # 获取 master 分支信息
+        git fetch origin master:master --depth 1
+        
+        # 暂存 custom 分支的修改
+        git stash
+        
+        # 切换到 master 分支
+        git checkout master
+        
+        # 删除 master 上所有旧的 music_list 文件
+        git rm -f static/music_list_*.json 2>/dev/null || true
+        
+        # 确保目录存在
+        mkdir -p static js
+        
+        # 复制新文件
+        cp "$TEMP_DIR/$(basename $LATEST_JSON)" static/
+        cp "$TEMP_DIR/player.js" js/
+        
+        # 提交并推送（需要移除 master 分支保护）
+        git add static/music_list_*.json js/player.js
+        if ! git diff --cached --quiet; then
+          git commit -m "Update music list from custom branch"
+          git push origin master
+          echo "✓ Changes pushed to master branch"
+        else
+          echo "✓ No changes to commit"
+        fi
