@@ -30,6 +30,10 @@ MUSIC_SUFFIXES = [ ".mp3", ".wma" ]
 LYRIC_SUFFIX = ".lrc"
 PIC_SUFFIX = ".jpg"
 
+GITHUB_URI = "https://raw.githubusercontent.com/EXP-Res/music-library"
+GITHUB_BRANCH = "custom"
+MUSIC_PREFEX = f"{GITHUB_URI}/{GITHUB_BRANCH}"
+
 
 def args() :
     parser = argparse.ArgumentParser(
@@ -73,6 +77,10 @@ def main(args) :
             if not file.lower().endswith(tuple(MUSIC_SUFFIXES)) :
                 continue
 
+            if any(kw in file.lower() for kw in ignores) :
+                log.warn(f"跳过文件： {file}")
+                continue
+
             absolute_path = os.path.join(root, file)
             rel_path = os.path.relpath(absolute_path, WORK_DIR).replace("\\", "/")
             rel_dir = os.path.dirname(rel_path)
@@ -80,6 +88,11 @@ def main(args) :
             
             lyric_path = f"{rel_dir}/{music_name}{LYRIC_SUFFIX}"
             pic_path = f"{rel_dir}/{music_name}{PIC_SUFFIX}"
+
+            # 把本地路径修改为 Github 仓库的在线路径，绕过 Github Page 构建时的硬盘限制
+            rel_path = f"{MUSIC_PREFEX}/{rel_path}"
+            lyric_path = f"{MUSIC_PREFEX}/{lyric_path}"
+            pic_path = f"{MUSIC_PREFEX}/{pic_path}"
 
             # 检查歌词文件和封面图片文件是否存在
             if not os.path.exists(os.path.join(WORK_DIR, lyric_path)) :
@@ -163,8 +176,13 @@ class MusicList:
         return len(self.item)
 
     def save_to_file(self, file_path):
+        # 根据 url 字段排序歌曲列表
+        sorted_items = sorted(self.item, key=lambda x: x.get('url', ''))
+        self.item = sorted_items
+        
         with open(file_path, 'w+', encoding=DEFAULT_ENCODING) as file:
             json.dump([self.__dict__], file, ensure_ascii=False, indent=4)
+
 
 class Music:
     def __init__(self, id, name, artist, album, pic, url, lyric, source="local", url_id=None, pic_id=None, lyric_id=None):

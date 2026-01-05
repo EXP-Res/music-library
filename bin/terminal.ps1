@@ -1,18 +1,18 @@
 # Powershell
 #------------------------------------------------
-# è¿›å…¥å®¹å™¨çš„äº¤äº’ç»ˆç«¯
+# ½øÈëÈİÆ÷µÄ½»»¥ÖÕ¶Ë
 # bin\terminal.ps1
 #------------------------------------------------
 
 
-# æ‰“å°å®¹å™¨åˆ—è¡¨ï¼Œå¹¶å¯¹å®¹å™¨æ‰“ä¸Šç¼–å·
+# ´òÓ¡ÈİÆ÷ÁĞ±í£¬²¢¶ÔÈİÆ÷´òÉÏ±àºÅ
 
 Write-Host "Select a container to enter:"
 $CONTAINER_LIST = docker ps --format "{{.ID}}\t{{.Names}}\t{{.Status}}\t{{.Ports}}"
 $CONTAINER_LIST | ForEach-Object { $_ -replace "`t", " " } | ForEach-Object { $i=0 } { ++$i; "$i. $_" }
 
 
-# è¯»å–ç”¨æˆ·é€‰æ‹©çš„å®¹å™¨ç¼–å·
+# ¶ÁÈ¡ÓÃ»§Ñ¡ÔñµÄÈİÆ÷±àºÅ
 
 $NUMBER = Read-Host "Enter a number (0 for exit):"
 if ($NUMBER -gt 0) {
