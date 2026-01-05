@@ -15,11 +15,12 @@ jobs:
       contents: write
 
     steps:
-    - name: Checkout repository
+    - name: Checkout repository (custom branch)
       uses: actions/checkout@v3
       with:
         ref: custom
         fetch-depth: 1
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Disk usage (before)
       run: |
@@ -61,35 +62,37 @@ jobs:
     - name: Copy changed files to master and commit
       if: steps.changes.outputs.has_changes == 'true'
       run: |
-        # 保存生成的文件到临时目录
-        TEMP_DIR="/tmp/music_list_update"
-        mkdir -p $TEMP_DIR
-        
+        # 保存生成的文件
         LATEST_JSON="${{ steps.changes.outputs.json_file }}"
+        
+        # 配置 git 使用 token 认证
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+        git config --global credential.helper store
+        echo "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com" > ~/.git-credentials
+        
+        # 获取 master 分支信息但不切换
+        git fetch origin master:master --depth 1
+        
+        # 在当前分支保存要提交的文件
+        TEMP_DIR="/tmp/files_to_commit"
+        mkdir -p $TEMP_DIR
         cp "$LATEST_JSON" "$TEMP_DIR/"
         cp js/player.js "$TEMP_DIR/"
-        echo "✓ Files saved to $TEMP_DIR"
         
-        # 在 /tmp 检出 master 分支
-        cd /tmp
-        rm -rf master_repo
-        git clone --depth 1 --branch master "https://github.com/${{ github.repository }}.git" master_repo
-        cd master_repo
+        # 切换到 master 分支
+        git checkout master
         
         # 清理旧的 music_list 文件
         rm -f static/music_list_*.json 2>/dev/null || true
         mkdir -p static js
         
-        # 复制新文件到 master 仓库
+        # 复制新文件
         cp "$TEMP_DIR/$(basename $LATEST_JSON)" static/
         cp "$TEMP_DIR/player.js" js/
         
-        # 配置 git 并提交
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
+        # 提交并推送
         git add static/music_list_*.json js/player.js
-        
-        # 只有有实际改动才提交
         if ! git diff --cached --quiet; then
           git commit -m "Update music list from custom branch"
           git push origin master
