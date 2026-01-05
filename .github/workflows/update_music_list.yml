@@ -77,26 +77,26 @@ jobs:
         git config --global credential.helper store
         echo "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com" > ~/.git-credentials
         
+        # 撤回 custom 分支的所有修改
+        git reset --hard HEAD
+        
         # 获取 master 分支信息
         git fetch origin master:master --depth 1
-        
-        # 暂存 custom 分支的修改
-        git stash
         
         # 切换到 master 分支
         git checkout master
         
         # 删除 master 上所有旧的 music_list 文件
-        git rm -f static/music_list_*.json 2>/dev/null || true
+        rm -f static/music_list_*.json 2>/dev/null || true
         
         # 确保目录存在
         mkdir -p static js
         
-        # 复制新文件
+        # 从临时目录复制新文件
         cp "$TEMP_DIR/$(basename $LATEST_JSON)" static/
         cp "$TEMP_DIR/player.js" js/
         
-        # 提交并推送（需要移除 master 分支保护）
+        # 提交并推送
         git add static/music_list_*.json js/player.js
         if ! git diff --cached --quiet; then
           git commit -m "Update music list from custom branch"
